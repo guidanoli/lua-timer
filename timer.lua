@@ -30,15 +30,16 @@ function timer:time_n_pbar(testf, n)
 	local progress_cb = function(p)
 		local curr = math.floor(p * 100)
 		if curr ~= last then
-			local pbar = string.rep("=", math.floor(87 * p))
-			local s = string.format("\r[%-83s] %3d%%", pbar, curr)
+			local pbar = string.rep("=", math.floor(73 * p))
+			local s = string.format("\r[%-73s] %3d%%", pbar, curr)
 			io.stdout:write(s)
 			io.stdout:flush()
 			last = curr
 		end
 	end
 	local stats = self:time_n(testf, n, progress_cb)
-	io.stdout:write("\n")
+	io.stdout:write(string.format("\r%80s\r", "")) -- clear line
+	io.stdout:flush()
 	return stats
 end
 
@@ -68,15 +69,18 @@ if type(arg) == "table" and arg[0]:find("timer%.lua$") then
 		io.stderr:write("  N\tnumber of loops, default: 1000000\n")
 		os.exit(1)
 	end
-	local load_cb = function() return io.stdin:read() end
-	print("Setup code:")
-	assert(load(load_cb), "setup code is invalid")()
-	print("Test code:")
-	local testf = assert(load(load_cb), "test code is invalid")
 	local n = tonumber(arg[1]) or 1000000
+	local load_cb = function() return io.stdin:read() end
+	print("-- setup")
+	assert(load(load_cb), "setup code is invalid")()
+	print("-- test (" .. n .. " times)")
+	local testf = assert(load(load_cb), "test code is invalid")
 	local stats = timer:time_n_pbar(testf, n)
+	print("-- stats")
 	print()
-	print(string.format("%g ≤ %g ± %g ≤ %g", stats.min, stats.mean, stats.stddev, stats.max))
+	for k, v in pairs(stats) do
+		print(string.format("-- %-10s %g", k, v))
+	end
 end
 
 return timer
