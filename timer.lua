@@ -15,7 +15,7 @@ function timer:time_n(testf, n, progress_cb)
 		mean = newmean
 		min = math.min(min, t)
 		max = math.max(max, t)
-		progress_cb(i / n)
+		if progress_cb then progress_cb(i / n) end
 	end
 	return {
 		min = min,
@@ -44,12 +44,20 @@ function timer:time_n_pbar(testf, n)
 end
 
 function timer:_has_option(opt)
-	for k, v in ipairs(arg) do
+	for i, v in ipairs(arg) do
 		if v == opt then
 			return true
 		end
 	end
 	return false
+end
+
+function timer:_get_option(opt)
+	for i, v in ipairs(arg) do
+		if v == opt then
+			return arg[i+1]
+		end
+	end
 end
 
 function timer:_concat_args()
@@ -80,18 +88,21 @@ end
 
 if type(arg) == "table" and arg[0]:find("timer%.lua$") then
 	if timer:_has_option('-h') then
-		io.stderr:write("Usage: " .. timer:_concat_args() .. "[-h] [N]\n")
-		io.stderr:write(" -h\tprint usage information and exit\n")
-		io.stderr:write("  N\tnumber of loops, default: 1000000\n")
+		local args = 
+		io.stderr:write("Usage: " .. timer:_concat_args() .. "[<args>]\n\n")
+		io.stderr:write("Arguments:\n")
+		io.stderr:write(" -h    print usage information and exit\n")
+		io.stderr:write(" -n #  number of loops, default: 1000000\n")
+		io.stderr:write(" -q    don't print progress bar\n")
 		os.exit(1)
 	end
-	local n = tonumber(arg[1]) or 1000000
+	local n = tonumber(timer:_get_option("-n") or 1000000)
 	local load_cb = function() return io.stdin:read() end
 	print("-- setup")
 	assert(load(load_cb), "setup code is invalid")()
 	print("-- test (" .. n .. " times)")
 	local testf = assert(load(load_cb), "test code is invalid")
-	local stats = timer:time_n_pbar(testf, n)
+	local stats = timer:_has_option("-q") and timer:time_n(testf, n) or timer:time_n_pbar(testf, n)
 	for k, v in timer:_sorted_pairs(stats) do
 		print(string.format("-- %-10s %g", k, v))
 	end
