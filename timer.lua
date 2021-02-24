@@ -62,6 +62,22 @@ function timer:_concat_args()
 	return s
 end
 
+function timer:_sorted_pairs(t)
+	local keys = {}
+	for key in pairs(t) do table.insert(keys, key) end
+	table.sort(keys)
+	local i = 0 -- iterator variable
+	local iter = function() -- iterator function
+		i = i + 1
+		local key = keys[i]
+		if key == nil then return nil
+		else return key, t[key]
+		end
+	end
+	return iter
+end
+
+
 if type(arg) == "table" and arg[0]:find("timer%.lua$") then
 	if timer:_has_option('-h') then
 		io.stderr:write("Usage: " .. timer:_concat_args() .. "[-h] [N]\n")
@@ -76,7 +92,7 @@ if type(arg) == "table" and arg[0]:find("timer%.lua$") then
 	print("-- test (" .. n .. " times)")
 	local testf = assert(load(load_cb), "test code is invalid")
 	local stats = timer:time_n_pbar(testf, n)
-	for k, v in pairs(stats) do
+	for k, v in timer:_sorted_pairs(stats) do
 		print(string.format("-- %-10s %g", k, v))
 	end
 end
