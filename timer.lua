@@ -76,8 +76,6 @@ if type(arg) == "table" and arg[0]:find("timer%.lua$") then
 	print("-- test (" .. n .. " times)")
 	local testf = assert(load(load_cb), "test code is invalid")
 	local stats = timer:time_n_pbar(testf, n)
-	print("-- stats")
-	print()
 	for k, v in pairs(stats) do
 		print(string.format("-- %-10s %g", k, v))
 	end
