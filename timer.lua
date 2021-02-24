@@ -88,7 +88,6 @@ end
 
 if type(arg) == "table" and arg[0]:find("timer%.lua$") then
 	if timer:_has_option('-h') then
-		local args = 
 		io.stderr:write("Usage: " .. timer:_concat_args() .. "[<args>]\n\n")
 		io.stderr:write("Arguments:\n")
 		io.stderr:write(" -h    print usage information and exit\n")
